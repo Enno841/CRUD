@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('persons', function (Blueprint $table) {
             $table->id();
             $table->foreignId('region_id')->unsigned()->constrained('regions')->cascadeOnDelete();
-            $table->foreignId('province_id')->unsigned()->constrained('provinces')->cascadeOnDelete();
             $table->foreignId('city_id')->unsigned()->constrained('cities')->cascadeOnDelete();
             $table->string('first_name');
             $table->string('last_name');

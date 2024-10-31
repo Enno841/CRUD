@@ -17,7 +17,11 @@ class CitiesResource extends Resource
 {
     protected static ?string $model = Cities::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+
+    protected static ?string $navigationLabel = 'Cities';
+
+    protected static ?string $modelLabel = 'Person City';
 
     public static function form(Form $form): Form
     {
