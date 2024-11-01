@@ -23,6 +23,12 @@ class CitiesResource extends Resource
 
     protected static ?string $modelLabel = 'Person City';
 
+    protected static ?string $navigationGroup = 'Location Management';
+
+    protected static ?string $slug = 'persons-cities';
+
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form
