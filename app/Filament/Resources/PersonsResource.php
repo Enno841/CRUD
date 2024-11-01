@@ -17,41 +17,68 @@ class PersonsResource extends Resource
 {
     protected static ?string $model = Persons::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
+    protected static ?string $navigationGroup = 'Person Management';
+
+    protected static ?string $modelLabel = 'Person';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('region_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('province_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('city_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('first_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('last_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('middle_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('address')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('zip_code')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\DatePicker::make('date_of_birth')
-                    ->required(),
-                Forms\Components\TextInput::make('age')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Section::make('Relationships')
+                    ->schema([
+                        Forms\Components\Select::make('region_id')
+                            ->relationship(name: 'region', titleAttribute: 'name')
+                            ->searchable()
+                            ->native(false)
+                            ->preload()
+                            ->required(),
+                        Forms\Components\Select::make('city_id')
+                            ->relationship(name: 'city', titleAttribute: 'name')
+                            ->searchable()
+                            ->native(false)
+                            ->preload()
+                            ->required(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Person Name')
+                    ->description('Put your name here.')
+                    ->schema([
+                        Forms\Components\TextInput::make('first_name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('last_name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('middle_name')
+                            ->required()
+                            ->maxLength(255),
+                    ])->columns(3),
+
+                Forms\Components\Section::make('Person Address')
+                    ->description('Put your address here.')
+                    ->schema([
+                        Forms\Components\TextInput::make('address')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('zip_code')
+                            ->required()
+                            ->maxLength(255),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Person Age')
+                    ->description('Put your age and birthday here.')
+                    ->schema([
+                        Forms\Components\DatePicker::make('date_of_birth')
+                            ->native(false)
+                            ->required(),
+                        Forms\Components\TextInput::make('age')
+                            ->required()
+                            ->numeric(),
+                    ])->columns(2),
+
             ]);
     }
 
@@ -62,9 +89,6 @@ class PersonsResource extends Resource
                 Tables\Columns\TextColumn::make('region_id')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('province_id')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('city_id')
                     ->numeric()
                     ->sortable(),
@@ -73,8 +97,6 @@ class PersonsResource extends Resource
                 Tables\Columns\TextColumn::make('last_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('middle_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('address')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('zip_code')
                     ->searchable(),

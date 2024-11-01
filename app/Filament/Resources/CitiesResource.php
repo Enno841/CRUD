@@ -17,7 +17,7 @@ class CitiesResource extends Resource
 {
     protected static ?string $model = Cities::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
 
     protected static ?string $navigationLabel = 'Cities';
 
@@ -33,9 +33,11 @@ class CitiesResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('province_id')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('region_id')
+                    ->relationship(name: 'region', titleAttribute: 'name')
+                    ->searchable()
+                    ->native(false)
+                    ->required(),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -46,7 +48,7 @@ class CitiesResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('province_id')
+                Tables\Columns\TextColumn::make('region_id')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
