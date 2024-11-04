@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\TrashedFilter;
 
 class RegionResource extends Resource
 {
@@ -56,11 +58,32 @@ class RegionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Action::make('softDelete')
+                    ->label('Delete')
+                    ->color('danger')
+                    ->icon('heroicon-o-trash')
+                    ->action(fn ($record) => $record->delete())
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->deleted_at === null), // Show only if not soft deleted
+                Action::make('restore')
+                    ->label('Restore')
+                    ->color('success')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(fn ($record) => $record->restore())
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->trashed()), // Show only if soft deleted
+                Action::make('forceDelete')
+                    ->label('Permanently Delete')
+                    ->color('danger')
+                    ->icon('heroicon-o-trash')
+                    ->action(fn ($record) => $record->forceDelete())
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->trashed()), // Show only if soft deleted
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -84,5 +107,17 @@ class RegionResource extends Resource
             'view' => Pages\ViewRegion::route('/{record}'),
             'edit' => Pages\EditRegion::route('/{record}/edit'),
         ];
+    }
+
+    protected function getTableFilters(): array
+    {
+        return [
+            TrashedFilter::make(),
+        ];
+    }
+
+    protected static function getTableQuery(): Builder
+    {
+        return parent::getTableQuery()->withTrashed();
     }
 }

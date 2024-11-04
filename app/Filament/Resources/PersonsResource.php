@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\TrashedFilter;
 
 class PersonsResource extends Resource
 {
@@ -86,12 +88,6 @@ class PersonsResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('region_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('city_id')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('first_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('last_name')
@@ -116,11 +112,32 @@ class PersonsResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Action::make('softDelete')
+                    ->label('Delete')
+                    ->color('danger')
+                    ->icon('heroicon-o-trash')
+                    ->action(fn ($record) => $record->delete())
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->deleted_at === null), // Show only if not soft deleted
+                Action::make('restore')
+                    ->label('Restore')
+                    ->color('success')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(fn ($record) => $record->restore())
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->trashed()), // Show only if soft deleted
+                Action::make('forceDelete')
+                    ->label('Permanently Delete')
+                    ->color('danger')
+                    ->icon('heroicon-o-trash')
+                    ->action(fn ($record) => $record->forceDelete())
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->trashed()), // Show only if soft deleted
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

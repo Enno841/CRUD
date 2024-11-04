@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\TrashedFilter;
 
 class CitiesResource extends Resource
 {
@@ -37,6 +39,7 @@ class CitiesResource extends Resource
                     ->relationship(name: 'region', titleAttribute: 'name')
                     ->searchable()
                     ->native(false)
+                    ->preload()
                     ->required(),
                 Forms\Components\TextInput::make('name')
                     ->required()
@@ -48,6 +51,9 @@ class CitiesResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->numeric()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('region_id')
                     ->numeric()
                     ->sortable(),
@@ -61,19 +67,40 @@ class CitiesResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+                ])
+                ->filters([
+                    TrashedFilter::make(),
+                ])
+                ->actions([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Action::make('softDelete')
+                        ->label('Delete')
+                        ->color('danger')
+                        ->icon('heroicon-o-trash')
+                        ->action(fn ($record) => $record->delete())
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) => $record->deleted_at === null), // Show only if not soft deleted
+                    Action::make('restore')
+                        ->label('Restore')
+                        ->color('success')
+                        ->icon('heroicon-o-arrow-path')
+                        ->action(fn ($record) => $record->restore())
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) => $record->trashed()), // Show only if soft deleted
+                    Action::make('forceDelete')
+                        ->label('Permanently Delete')
+                        ->color('danger')
+                        ->icon('heroicon-o-trash')
+                        ->action(fn ($record) => $record->forceDelete())
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) => $record->trashed()), // Show only if soft deleted
+                ])
+                ->bulkActions([
+                    Tables\Actions\BulkActionGroup::make([
+                        Tables\Actions\DeleteBulkAction::make(),
+                    ]),
+                ]);
     }
 
     public static function getRelations(): array
@@ -91,5 +118,17 @@ class CitiesResource extends Resource
             'view' => Pages\ViewCities::route('/{record}'),
             'edit' => Pages\EditCities::route('/{record}/edit'),
         ];
+    }
+
+    protected function getTableFilters(): array
+    {
+        return [
+            TrashedFilter::make(),
+        ];
+    }
+
+    protected static function getTableQuery(): Builder
+    {
+        return parent::getTableQuery()->withTrashed();
     }
 }
